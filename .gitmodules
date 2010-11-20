@@ -1,0 +1,6 @@
+[submodule "vendor/tornado"]
+	path = vendor/tornado
+	url = https://github.com/facebook/tornado.git
+[submodule "vendor/connect"]
+	path = vendor/connect
+	url = https://github.com/senchalabs/connect.git
