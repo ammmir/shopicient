@@ -11,9 +11,9 @@ HashHistory.loadURL(function() {
 //HashHistory.save("#fragment");
 
 function Shopicient() {
+  this.root = $("#content");
 }
 
 Shopicient.prototype.run = function() {
-
 };
 
