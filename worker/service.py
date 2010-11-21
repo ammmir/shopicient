@@ -1,7 +1,10 @@
+import time
 from threading import Thread
 
 from db import Database
 from account import AccountWorker
+
+CHECK_INTERVAL = 60
 
 class EmailWorker(Thread):
     def __init__(self, email=None, password=None, last_seq_id=None):
@@ -16,16 +19,20 @@ class EmailService:
         self.db = Database().get_connection()
 
     def start(self):
+        while True:
+            print ">>> checking for new emails...."
+            self.iter()
+            print "<<< sleeping for %d seconds..." % CHECK_INTERVAL
+            time.sleep(CHECK_INTERVAL)
+
+    def iter(self):
         cur = self.db.cursor()
-        cur.execute("SELECT email,email_password,last_id FROM User")
+        cur.execute("SELECT email,email_password,last_email_id FROM users")
         for res in cur:
-            print "result:", res
-            email, password, id = r
+            email, password, id = res
 
             EmailWorker(email=email, password=password, last_seq_id=id).run()
-
-    def get_accounts(self):
-        pass
+        cur.close()
 
 if __name__ == "__main__":
     w = EmailService()
