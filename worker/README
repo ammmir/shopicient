@@ -1,0 +1,10 @@
+184.72.21.41
+
+
+for each new email:
+  create new order(vendor, price, info, user)
+  create new event(order date)
+         new event(delivery date eta)
+         new event(return deadline)
+
+
