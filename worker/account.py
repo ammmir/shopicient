@@ -21,9 +21,10 @@ class UnknownEmailProvider(Exception):
     pass
 
 class AccountWorker:
-    def __init__(self, email=None, password=None):
+    def __init__(self, email=None, password=None, last_seq_id=0):
         self.email = email
         self.password = password
+        self.last_seq_id = last_seq_id
 
     def update_messages(self):
         try:
@@ -40,8 +41,15 @@ class AccountWorker:
         status = self.conn.stat()
 
         if status[0]:
-            for item in self.conn.list()[1]:
+            message_list = self.conn.list()[1];
+
+            for item in message_list:
                 number, bytes = item.split(' ')
+
+                if number < self.last_seq_id:
+                    print "skipping message %s" % number
+                    continue # this message has already been indexed
+
                 print "going to download message %s (%s bytes)" % (number, bytes)
 
                 #lines = self.conn.retr(number)[1]
