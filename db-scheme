@@ -1,0 +1,26 @@
+User
+    id
+    timestamp of last email processed
+    email
+    email password
+    us password
+
+Order
+    id
+    price
+    vendor (amazon)
+    information/name (text on items - "purse and scarf")
+    user id
+    phone number
+    raw email text/html
+
+Event
+    id
+    type (order date, deliver date, return deadline)
+    date
+    order id
+
+Alerts
+    id
+    event id
+    type (sms or email)
