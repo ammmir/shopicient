@@ -1,13 +1,12 @@
-import email
-from email.MIMEText import MIMEText
-import poplib
+import imaplib
 
+from message import MessageProcessor
 
 def get_mail_server(email):
     servers = {
-        'unoc.net': 'pop.gmail.com',
-        'gmail.com': 'pop.gmail.com',
-        'yahoo.com': 'pop.mail.yahoo.com',
+        'unoc.net': 'imap.gmail.com',
+        'gmail.com': 'imap.gmail.com',
+        'yahoo.com': 'imap.mail.yahoo.com',
     }
 
     domain = email[email.index("@")+1:]
@@ -33,37 +32,38 @@ class AccountWorker:
             print "unknown email provider:", self.email
             return
 
-        self.conn = poplib.POP3_SSL(server)
-        self.conn.set_debuglevel(1)
-        self.conn.user(self.email)
-        self.conn.pass_(self.password)
+        self.conn = imaplib.IMAP4_SSL(server)
+        imaplib.IMAP4.debug = 3
+        self.conn.login(self.email, self.password)
 
-        status = self.conn.stat()
+        self.conn.select()
 
-        if status[0]:
-            message_list = self.conn.list()[1];
+        typ, data = self.conn.search(None, 'ALL')
 
-            for item in message_list:
-                number, bytes = item.split(' ')
-
-                if number < self.last_seq_id:
-                    print "skipping message %s" % number
-                    continue # this message has already been indexed
-
-                print "going to download message %s (%s bytes)" % (number, bytes)
-
-                #lines = self.conn.retr(number)[1]
-                #self.process_email("\n".join(lines))
-
-            self.conn.quit()
-        else:
-            print "no messages on server"
+        if typ != 'OK':
             return
 
-    def process_email(self, data):
-        msg = email.message_from_string(data)
-        print "got msg:", msg
+        for num in data[0].split():
+            typ, data = self.conn.fetch(num, '(RFC822)')
+            #print 'Message %s\n%s\n' % (num, data[0][1])
 
+            if typ != 'OK':
+                continue
+
+            try:
+                msg = data[0][1]
+            except IndexError:
+                continue
+
+            self.process_email(msg)
+
+
+    def process_email(self, data):
+        mp = MessageProcessor(data=data)
+        mp.parse_message()
+
+        info = mp.get_info()
+        print "  info:", info
 
 if __name__ == "__main__":
     print "testing invalid email"
@@ -71,5 +71,5 @@ if __name__ == "__main__":
     a.update_messages()
 
     print "testing real email"
-    a = AccountWorker(email='w2mv@unoc.net', password='shopofmind')
+    a = AccountWorker(email='w2mv@unoc.net', password='shopofmind', last_seq_id=0)
     a.update_messages()
